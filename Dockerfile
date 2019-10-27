@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:3.7
 
 MAINTAINER Amirhossein
 
@@ -9,7 +9,7 @@ ADD . /usr/src/app
 WORKDIR /usr/src/app
 COPY requirements.txt ./
 # Get pip to download and install requirements:
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 # Expose ports
 EXPOSE 8000
 # default command to execute    
