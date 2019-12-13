@@ -6,7 +6,6 @@ from accounting.models import Seller, User, Company
 from dashboard.decorators import company_required, admin_required
 from dashboard.forms import SellerCreateForm, CompanyCreateForm, ProductForm
 from main.models import Product
-from cruds_adminlte.crud import CRUDView, CRUDMixin
 
 
 @login_required
