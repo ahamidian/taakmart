@@ -13,32 +13,34 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from cruds_adminlte.urls import crud_for_app, crud_for_model
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-
-from accounting.views import MyTokenObtainPairView, UserViewSet
-from main.views import download_categories, download_products, CategoryViewSet, ProductViewSet
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
 )
+from django.apps import apps
 
+from accounting.views import MyTokenObtainPairView, UserViewSet
+from main.views import download_categories, download_products, CategoryViewSet, ProductViewSet, SlideViewSet
 from shopping.views import OrderViewSet
 
 router = routers.DefaultRouter()
 router.register(r'categories', CategoryViewSet, base_name='categories')
 router.register(r'products', ProductViewSet, base_name='products')
 router.register(r'send_code', UserViewSet, base_name='send_code')
-router.register(r'order', OrderViewSet, base_name='send_code')
+router.register(r'order', OrderViewSet, base_name='order')
+router.register(r'slides', SlideViewSet, base_name='slide')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('dashboard/', include('dashboard.urls')),
     path('download_categories/', download_categories),
     path('download_products/', download_products),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(router.urls)),
 ]
-
 

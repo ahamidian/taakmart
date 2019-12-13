@@ -1,13 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    {% for seller in sellers %}
-        {{ seller.user.username }}
-        {{ seller.user.first_name }}
-        {{ seller.user.last_name }}
+    {% for company in companies %}
+        {{ company.name }}
         <br>
     {% endfor %}
 
-    <a type="submit" class="btn btn-primary" href="sellers/create">create new seller</a>
+    <a type="submit" class="btn btn-primary" href="companies/create">create new company</a>
 
 {% endblock %}

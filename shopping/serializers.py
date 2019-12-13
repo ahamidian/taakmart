@@ -48,7 +48,17 @@ class OrderSerializer(ModelSerializer):
     #     order_service.check_shipping(order)
     #     return order
 
+
 class EditOrderLineSerializer(Serializer):
     product_id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
+
+class CreateOrderLineSerializer(Serializer):
+    product_id = serializers.IntegerField()
+    amount = serializers.IntegerField()
+    price = serializers.IntegerField()
+
+
+class CreateOrderSerializer(Serializer):
+    lines = CreateOrderLineSerializer(many=True)

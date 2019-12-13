@@ -4,6 +4,8 @@ from django.db import models
 from django.db.models import CASCADE
 from django.utils import timezone
 
+from accounting.models import Company
+
 
 class Brand(models.Model):
     title = models.CharField(max_length=255)
@@ -44,6 +46,43 @@ class Product(models.Model):
     brand = models.ForeignKey(Brand, on_delete=CASCADE)
     types = models.ManyToManyField(Type)
     parent = models.ForeignKey(Category, on_delete=CASCADE)
+    created_on = models.DateTimeField(default=timezone.now)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Slide(models.Model):
+    title = models.CharField(max_length=255, null=True, blank=True)
+    image = models.CharField(max_length=255)
+    internal_link = models.CharField(max_length=255, null=True, blank=True)
+    external_link = models.CharField(max_length=255, null=True, blank=True)
+    created_on = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+
+
+class HomepagePhoto(models.Model):
+    title = models.CharField(max_length=255, null=True, blank=True)
+    image = models.CharField(max_length=255)
+    internal_link = models.CharField(max_length=255, null=True, blank=True)
+    external_link = models.CharField(max_length=255, null=True, blank=True)
+    created_on = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Collection(models.Model):
+    title = models.CharField(max_length=255)
+    query = models.CharField(max_length=255, null=True, blank=True)
+    products = models.ManyToManyField(Product)
+    created_on = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title

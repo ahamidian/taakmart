@@ -1,10 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2 class="mb-3">Products</h2>
+    <a href="kk" class="btn btn-primary mb-3" role="button">Add product</a>
+    <div class="card">
+        <table class="table mb-0">
+            <thead>
+            <tr>
+                <th>Quiz</th>
+                <th>Subject</th>
+                <th>Questions</th>
+                <th>Taken</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in object_list %}
+                <tr>
+                    {#            <td class="align-middle"><a href="{% url 'teachers:quiz_change' quiz.pk %}">{{ quiz.name }}</a></td>#}
+                    <td class="align-middle"><a href="sd">{{ product.title }}</a></td>
+                    <td class="align-middle">{{ product.image }}</td>
+                    <td class="align-middle">{{ product.price }}</td>
+                    <td class="align-middle">{{ product.brand }}</td>
+                    <td class="text-right">
+                        <a href="fdg" class="btn btn-primary">View results</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td class="bg-light text-center font-italic" colspan="5">You haven't created any quiz yet.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if is_paginated %}
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; 1</a>
+                    {% if page_obj.previous_page_number > 2 %}
+                        ...
+                    {% endif %}
+                    <a href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+
+                {% endif %}
+
+                <span class="current">
+                    {{ page_obj.number }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+                    {% if page_obj.paginator.num_pages  >  page_obj.next_page_number %}
+                        ...
+                    {% endif %}
+                    {% if page_obj.next_page_number != page_obj.paginator.num_pages %}
+                        <a href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }} &raquo;</a>
+                    {% endif %}
+                {% endif %}
+
+            </span>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import CASCADE
 from django.utils import timezone
 
-from accounting.models import User
+from accounting.models import User, Seller
 from main.models import Product
 
 
@@ -23,7 +23,7 @@ class Order(models.Model):
     )
     STATUSES = {k: v for (k, v) in STATUS_CHOICES}
 
-    owner = models.ForeignKey(User, null=True, blank=True, on_delete=CASCADE)
+    owner = models.ForeignKey(Seller, null=True, blank=True, on_delete=CASCADE)
     created_on = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_DRAFT)
     description = models.TextField(null=True, blank=True)

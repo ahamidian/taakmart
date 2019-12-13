@@ -28,12 +28,15 @@ class UserGetCodeSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         user = User.objects.get(username=validated_data["username"])
-        delta_time = timezone.now() - user.verification_code_created_on
-        if user.verification_code is None or delta_time.days > 0:
+        seller = user.seller
+        delta_time = timezone.now() - seller.verification_code_created_on
+        if seller.verification_code is None or delta_time.days > 0:
             verification_code = str(randint(10000, 99999))
-            user.verification_code = verification_code
-            user.verification_code_created_on = timezone.now()
+            verification_code = "11111"
+            seller.verification_code = verification_code
+            seller.verification_code_created_on = timezone.now()
             user.set_password(verification_code)
+            seller.save()
             user.save()
         # SmsServices.send_verification_code(user)
         return user
