@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% for seller in sellers %}
+        {{ seller.user.username }}
+        {{ seller.user.first_name }}
+        {{ seller.user.last_name }}
+        <br>
+    {% endfor %}
+
+    <a type="submit" class="btn btn-primary" href="sellers/create">create new seller</a>
+
+{% endblock %}
