@@ -5,7 +5,7 @@ from django.views.generic import CreateView, ListView
 from accounting.models import Seller, User, Company
 from dashboard.decorators import company_required, admin_required
 from dashboard.forms import SellerCreateForm, CompanyCreateForm, ProductForm
-from main.models import Product
+from main.models import Product, Brand
 
 
 @login_required
@@ -48,8 +48,23 @@ class CompanyCreateView(CreateView):
 
 class ProductListView(ListView):
     model = Product
-    template_name = 'classroom/product_list.html'
-    paginate_by = 5
+    template_name = 'list.html'
+    paginate_by = 20
+    filter_list = ["brand"]
+
+    def get_filters(self):
+        filters = []
+        filters.append({"title": "brand", "choices": Brand.objects.all()})
+        return filters
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['title'] = 'Product'
+        data['field_list'] = ["title", "price", "brand"]
+        data['filter_list'] = self.get_filters()
+        return data
+
+    # def get_queryset(self):
 
 
 def product_list(request):
@@ -85,5 +100,3 @@ def product_delete(request, pk, template_name='products/product_confirm_delete.h
         product.delete()
         return redirect('product_list')
     return render(request, template_name, {'object': product})
-
-
