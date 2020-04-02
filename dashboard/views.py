@@ -1,11 +1,13 @@
+import django_filters
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import CreateView, ListView
+from django.shortcuts import render, redirect
+from django.views.generic import CreateView
+from django_filters.views import FilterView
 
 from accounting.models import Seller, User, Company
 from dashboard.decorators import company_required, admin_required
 from dashboard.forms import SellerCreateForm, CompanyCreateForm, ProductForm
-from main.models import Product, Brand
+from main.models import Product
 
 
 @login_required
@@ -46,57 +48,37 @@ class CompanyCreateView(CreateView):
         return redirect('dashboard')
 
 
-class ProductListView(ListView):
+class ProductFilter(django_filters.FilterSet):
+    class Meta:
+        model = Product
+        fields = {'brand': ['exact'], 'parent': ['exact'], 'existStatus': ['exact'], 'title': ["icontains"]}
+
+
+class ProductListView(FilterView):
     model = Product
     template_name = 'list.html'
     paginate_by = 20
-    filter_list = ["brand"]
-
-    def get_filters(self):
-        filters = []
-        filters.append({"title": "brand", "choices": Brand.objects.all()})
-        return filters
+    filterset_class = ProductFilter
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         data['title'] = 'Product'
-        data['field_list'] = ["title", "price", "brand"]
-        data['filter_list'] = self.get_filters()
+        data['field_list'] = ["title", "price", "brand", "parent"]
         return data
 
-    # def get_queryset(self):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort = self.request.GET.get('sort', None)
+        if sort:
+            queryset = queryset.order_by(sort)
+        return queryset
 
 
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, "classroom/product_list.html", {'products': products})
+class ProductCreateView(CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'edit.html'
 
-
-def product_view(request, pk, template_name='products/product_detail.html'):
-    product = get_object_or_404(Product, pk=pk)
-    return render(request, template_name, {'object': product})
-
-
-def product_create(request, template_name='products/product_form.html'):
-    form = ProductForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('product_list')
-    return render(request, template_name, {'form': form})
-
-
-def product_update(request, pk, template_name='products/product_form.html'):
-    product = get_object_or_404(Product, pk=pk)
-    form = ProductForm(request.POST or None, instance=product)
-    if form.is_valid():
-        form.save()
-        return redirect('product_list')
-    return render(request, template_name, {'form': form})
-
-
-def product_delete(request, pk, template_name='products/product_confirm_delete.html'):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        product.delete()
-        return redirect('product_list')
-    return render(request, template_name, {'object': product})
+    def form_valid(self, form):
+        product = form.save()
+        return redirect('dashboard')

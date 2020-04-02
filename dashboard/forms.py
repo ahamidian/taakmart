@@ -55,4 +55,4 @@ class CompanyCreateForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['title', 'image']
+        fields = ['title', 'image','price','discounted_price','existStatus','brand','parent']

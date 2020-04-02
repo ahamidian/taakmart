@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -11,13 +11,24 @@ from shopping.models import Order, OrderLine
 from shopping.serializers import OrderSerializer, CreateOrderSerializer
 
 
-class OrderViewSet(GenericViewSet, CreateModelMixin):
+class OrderViewSet(GenericViewSet, CreateModelMixin, ListModelMixin):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset()).filter(owner=request.user.seller)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def get_cart(self, seller):
-        if Order.objects.filter(owner=seller, status=0).count()>0:
+        if Order.objects.filter(owner=seller, status=0).count() > 0:
             return Order.objects.get(owner=seller, status=0)
         else:
             return Order.objects.create(owner=seller)
@@ -49,32 +60,3 @@ class OrderViewSet(GenericViewSet, CreateModelMixin):
             return Response(OrderSerializer(cart).data, status=status.HTTP_201_CREATED)
         else:
             pass
-
-
-    # @action(detail=False, methods=['post'])
-    # def edit(self, request):
-    #     cart = self.get_cart(request.user)
-    #     serializer = EditOrderLineSerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     product = Product.objects.get(id=serializer.validated_data["product_id"])
-    #     amount = serializer.validated_data["amount"]
-    #
-    #     if cart.lines.filter(product=product).exists():
-    #         order_line = cart.lines.get(product=product)
-    #         if amount > 0:
-    #             if order_line.amount != amount:
-    #                 order_line.amount = amount
-    #                 order_line.price = product.price * amount
-    #                 order_line.save()
-    #             return Response(OrderLineSerializer(order_line).data, status=status.HTTP_200_OK)
-    #         else:
-    #             order_line.delete()
-    #             return Response(status=status.HTTP_204_NO_CONTENT)
-    #
-    #     else:
-    #         if amount > 0:
-    #             order_line = OrderLine.objects.create(product=product, amount=amount, price=product.price * amount,
-    #                                                   order=cart)
-    #             return Response(OrderLineSerializer(order_line).data, status=status.HTTP_201_CREATED)
-    #         else:
-    #             return Response(status=status.HTTP_204_NO_CONTENT)

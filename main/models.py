@@ -1,8 +1,9 @@
 from django.contrib.auth.models import AbstractUser, User
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import CASCADE
+from django.db.models import CASCADE, Max
 from django.utils import timezone
+from ordered_model.models import OrderedModel
 
 from accounting.models import Company
 
@@ -17,8 +18,8 @@ class Brand(models.Model):
 class Category(models.Model):
     title = models.CharField(max_length=255)
     image = models.CharField(max_length=255)
-    url_code = models.CharField(max_length=255)
-    queryString = models.CharField(max_length=255)
+    url_code = models.CharField(max_length=255, null=True, blank=True)
+    queryString = models.CharField(max_length=255, null=True, blank=True)
     is_leaf = models.BooleanField(default=True)
     parent = models.ForeignKey('self', on_delete=CASCADE, null=True, blank=True)
     level = models.IntegerField(default=1)
@@ -65,10 +66,11 @@ class Slide(models.Model):
         return self.title
 
 
-class HomepagePhoto(models.Model):
+class HomepageSegment(OrderedModel):
     title = models.CharField(max_length=255, null=True, blank=True)
-    image = models.CharField(max_length=255)
-    internal_link = models.CharField(max_length=255, null=True, blank=True)
+    image = models.CharField(max_length=255, null=True, blank=True)
+    query = models.CharField(max_length=255, null=True, blank=True)
+    products = models.ManyToManyField(Product, null=True, blank=True)
     external_link = models.CharField(max_length=255, null=True, blank=True)
     created_on = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
@@ -76,13 +78,3 @@ class HomepagePhoto(models.Model):
     def __str__(self):
         return self.title
 
-
-class Collection(models.Model):
-    title = models.CharField(max_length=255)
-    query = models.CharField(max_length=255, null=True, blank=True)
-    products = models.ManyToManyField(Product)
-    created_on = models.DateTimeField(default=timezone.now)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.title

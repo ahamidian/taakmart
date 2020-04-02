@@ -1,6 +1,7 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import F
 from django.db.models import Sum, Count
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, NumberFilter, BaseInFilter
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -9,9 +10,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from main.models import Category, Product, Slide, Brand, Type
+from main.models import Category, Product, Slide, Brand, Type, HomepageSegment
 from main.serializers import CategorySerializer, ProductSerializer, SlideSerializer, \
-    TypeSerializer, BrandSerializer
+    TypeSerializer, BrandSerializer, SegmentSerializer
 from main.services import get_categories, get_all_products
 
 
@@ -23,6 +24,23 @@ def download_categories(request):
 def download_products(request):
     get_all_products()
     return HttpResponse("ok")
+
+
+def initial_data(request):
+    categories_queryset = Category.objects.filter(level=1)
+    categories = CategorySerializer(categories_queryset, many=True).data
+
+    slides_queryset = Slide.objects.filter(is_active=True)
+    slides = SlideSerializer(slides_queryset, many=True).data
+
+    segments_queryset = HomepageSegment.objects.filter(is_active=True).order_by("order")
+    segments = SegmentSerializer(segments_queryset, many=True).data
+
+    return JsonResponse({
+        "categories": categories,
+        "slides": slides,
+        "segments": segments,
+    })
 
 
 class CategoryViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
@@ -115,3 +133,8 @@ class SlideViewSet(GenericViewSet, ListModelMixin):
     permission_classes = [AllowAny]
     serializer_class = SlideSerializer
 
+
+class SegmentViewSet(GenericViewSet, ListModelMixin):
+    queryset = HomepageSegment.objects.filter(is_active=True).order_by("order")
+    permission_classes = [AllowAny]
+    serializer_class = SegmentSerializer

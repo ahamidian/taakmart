@@ -1,14 +1,7 @@
-import re
-
-from random import randint
-
-from django.utils import timezone
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from main.models import Category, Product, Slide, Brand, Type
+from main.models import Category, Product, Slide, Brand, Type, HomepageSegment
 
 
 class SimpleCategorySerializer(ModelSerializer):
@@ -89,5 +82,19 @@ class SlideSerializer(ModelSerializer):
             "title",
             "image",
             "internal_link",
+            "external_link",
+        ]
+
+
+class SegmentSerializer(ModelSerializer):
+    products = ProductSerializer(many=True)
+
+    class Meta:
+        model = HomepageSegment
+        fields = [
+            "title",
+            "query",
+            "products",
+            "image",
             "external_link",
         ]

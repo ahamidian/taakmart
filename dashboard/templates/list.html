@@ -1,67 +1,83 @@
 {% extends 'base.html' %}
 {% load getattribute %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-    <h3 class="mb-3">Products</h3>
-    {% for filter in filter_list %}
-        {{ filter.title }}
-        {% for choice in filter.choices %}
-            <li><a href="&{{ filter.title }}={{ choice.id }}">{{choice}}</a></li>
-        {% endfor %}
-    {% endfor %}
-    <a href="create" class="btn btn-primary mb-3" role="button">Add {{ title }}</a>
-    <div class="card">
-        <table class="table mb-0">
-            <thead>
-            <tr>
-                {% for field in field_list %}
-                    <td>{{ field }}</td>
-                {% endfor %}
-            </tr>
-            </thead>
-            <tbody>
-            {% for object in object_list %}
-                <tr>
-                    {% for field in field_list %}
-                        {% if forloop.first %}
-                            <td class="align-middle"><a href="edit/{{ object.id }}">{{ object|getattribute:field }}</a>
+    <div class="row p-2" style="margin: 0!important;width: 100%">
+        <div class="col-md-10 col-sm-12">
+            <h3 class="mb-3">{{ title }}</h3>
+        </div>
+        <div class="col-md-2 col-sm-12 text-right">
+            <a href="create" class="btn btn-primary mb-3" role="button">Add {{ title }}</a>
+        </div>
+    </div>
+    <div class="row" style="margin: 0!important;width: 100%">
+
+        <div class="col-md-9 col-sm-12">
+            <div class="card">
+                <table class="table table-striped mb-0">
+                    <thead>
+                    <tr>
+                        {% for field in field_list %}
+                            <td onclick="sort('{{ field }}');"><strong>{{ field }}</strong></td>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for object in object_list %}
+                        <tr>
+                            {% for field in field_list %}
+                                {% if forloop.first %}
+                                    <td class="align-middle"><a
+                                            href="edit/{{ object.id }}">{{ object|getattribute:field }}</a>
+                                    </td>
+                                {% else %}
+                                    <td class="align-middle">{{ object|getattribute:field }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td class="bg-light text-center font-italic" colspan="5">You haven't created any quiz
+                                yet.
                             </td>
-                        {% else %}
-                            <td class="align-middle">{{ object|getattribute:field }}</td>
-                        {% endif %}
+                        </tr>
                     {% endfor %}
-                    {#                    <td class="text-right">#}
-                    {#                        <a href="fdg" class="btn btn-primary">View results</a>#}
-                    {#                    </td>#}
-                </tr>
-            {% empty %}
-                <tr>
-                    <td class="bg-light text-center font-italic" colspan="5">You haven't created any quiz yet.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-12 pl-0">
+            <div style="border: 1px solid #cccccc">
+                <p style="background-color: #0088cc;color: white;" class="p-2 mb-0">filter</p>
+                <form action="" method="get" class="p-1" style="flex:1;background-color: rgba(0,0,0,.05)">
+                    {{ filter.form|crispy }}
+                    <input type="submit" class="btn btn-primary mb-3" role="button" value="filter"
+                           style="justify-self: center"/>
+                </form>
+            </div>
+        </div>
     </div>
 
     {% if is_paginated %}
 
-        <nav aria-label="Page navigation example">
+        <nav aria-label="Page navigation example" class="m-4">
             <ul class="pagination">
                 {% if page_obj.number > 1 %}
-                    <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                    <li class="page-item"><a class="page-link" onclick="goToPage(1);">1</a></li>
                 {% endif %}
                 {% if page_obj.number > 3 %}
                     <li class="page-item disabled"><p class="page-link">...</p></li>
                 {% endif %}
                 {% if page_obj.number > 2 %}
                     <li class="page-item"><a class="page-link"
-                                             href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+                                             onclick="goToPage({{ page_obj.previous_page_number }});">{{ page_obj.previous_page_number }}</a>
                     </li>
                 {% endif %}
                 <li class="page-item active"><p class="page-link">{{ page_obj.number }}</p></li>
                 {% if page_obj.number < page_obj.paginator.num_pages|add:-1 %}
                     <li class="page-item"><a class="page-link"
-                                             href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+                                             onclick="goToPage({{ page_obj.next_page_number }});">{{ page_obj.next_page_number }}</a>
                     </li>
                 {% endif %}
                 {% if page_obj.number < page_obj.paginator.num_pages|add:-2 %}
@@ -69,10 +85,73 @@
                 {% endif %}
                 {% if page_obj.number < page_obj.paginator.num_pages %}
                     <li class="page-item"><a class="page-link"
-                                             href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+                                             onclick="goToPage({{ page_obj.paginator.num_pages }});">{{ page_obj.paginator.num_pages }}</a>
                     </li>
                 {% endif %}
             </ul>
         </nav>
     {% endif %}
+
 {% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript">
+        function goToPage(page) {
+            let url = location.href;
+            if (url.includes("?")) {
+                let parts = url.split("?")[1].split("&");
+                parts = parts.filter(part => !part.startsWith("page="));
+                parts.push("page=" + page);
+                location.href = url.split("?")[0] + "?" + parts.join("&")
+            } else {
+                location.href = location.href + "?page=" + page;
+            }
+        }
+
+        function sort(field) {
+            let url = location.href;
+            if (url.includes("?")) {
+                let parts = url.split("?")[1].split("&");
+                let sortPart = parts.find(part => part.startsWith("sort="));
+                if (sortPart) {
+                    parts = parts.filter(part => !part.startsWith("sort="));
+                    if (sortPart.includes("-" + field)) {
+                    } else if (sortPart.includes(field)) {
+                        parts.push("sort=-" + field);
+                    } else {
+                        parts.push("sort=" + field);
+                    }
+                } else {
+                    parts.push("sort=" + field);
+                }
+                if(parts.length>0){
+                    location.href = url.split("?")[0] + "?" + parts.join("&")
+                }else {
+                    location.href = url.split("?")[0]
+                }
+            } else {
+                location.href = location.href + "?sort=" + field;
+            }
+        }
+
+        $(document).ready(function () {
+            $('.select').select2();
+            $('.select2-selection').css("padding", ".3rem 0");
+            $('.select2-selection--single').css("height", "auto");
+            $('.select2-selection__arrow').css("height", "38px");
+        });
+
+        $('form').submit(function () {
+            $(this)
+                .find('input[name]')
+                .filter(function () {
+                    return !this.value;
+
+                })
+                .prop('name', '');
+        });
+    </script>
+
+{% endblock %}
+
