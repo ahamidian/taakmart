@@ -124,8 +124,15 @@ class ProductViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
             types_pk_list.append(dictionary["types"])
         types_queryset = Type.objects.filter(pk__in=types_pk_list)
 
-        return Response({"brands": BrandSerializer(brands_queryset, many=True).data,
-                         "types": TypeSerializer(types_queryset, many=True).data})
+        filters = []
+        if brands_queryset.count() > 0:
+            filters.append(
+                {"type": "brand", "title": "برند", "items": BrandSerializer(brands_queryset, many=True).data})
+        if brands_queryset.count() > 0:
+            filters.append(
+                {"type": "type", "title": "نوع", "items": TypeSerializer(types_queryset, many=True).data})
+
+        return Response({"filters": filters})
 
 
 class SlideViewSet(GenericViewSet, ListModelMixin):
