@@ -33,8 +33,39 @@ class CategorySerializer(ModelSerializer):
         return SimpleCategorySerializer(Category.objects.filter(parent=obj), many=True).data
 
 
+class BrandSerializer(ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = [
+            'title',
+            'fa_title',
+            'id',
+        ]
+
+class BrandDetailSerializer(ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = [
+            'title',
+            "image",
+            "description",
+            'fa_title',
+            'id',
+        ]
+
+
+class TypeSerializer(ModelSerializer):
+    class Meta:
+        model = Type
+        fields = [
+            'title',
+            'id',
+        ]
+
+
 class ProductSerializer(ModelSerializer):
     # img = serializers.SerializerMethodField()
+    brand = BrandSerializer(many=False)
 
     class Meta:
         model = Product
@@ -54,24 +85,6 @@ class ProductSerializer(ModelSerializer):
     #     if obj.img:
     #         return "http://192.168.1.8:8000" + obj.img.url
     #     return obj.pic
-
-
-class BrandSerializer(ModelSerializer):
-    class Meta:
-        model = Brand
-        fields = (
-            'title',
-            'id',
-        )
-
-
-class TypeSerializer(ModelSerializer):
-    class Meta:
-        model = Type
-        fields = (
-            'title',
-            'id',
-        )
 
 
 class SlideSerializer(ModelSerializer):

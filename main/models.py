@@ -10,6 +10,9 @@ from accounting.models import Company
 
 class Brand(models.Model):
     title = models.CharField(max_length=255)
+    fa_title = models.CharField(max_length=255,null=True,blank=True)
+    image = models.CharField(max_length=255,null=True,blank=True)
+    description = models.TextField(default="")
 
     def __str__(self):
         return self.title
@@ -77,4 +80,3 @@ class HomepageSegment(OrderedModel):
 
     def __str__(self):
         return self.title
-

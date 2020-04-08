@@ -23,17 +23,15 @@ from django.apps import apps
 
 from accounting.views import MyTokenObtainPairView, UserViewSet
 from dashboard.viewsets import product_viewset, category_viewset, seller_viewset, company_viewset, order_viewset
-from main.views import download_categories, download_products, CategoryViewSet, ProductViewSet, SlideViewSet, \
-    SegmentViewSet, initial_data
+from main.views import ProductViewSet, initial_data, BrandViewSet
 from shopping.views import OrderViewSet
 
 router = routers.DefaultRouter()
-router.register(r'categories', CategoryViewSet, base_name='categories')
 router.register(r'products', ProductViewSet, base_name='products')
+router.register(r'brands', BrandViewSet, base_name='brands')
 router.register(r'send_code', UserViewSet, base_name='send_code')
 router.register(r'order', OrderViewSet, base_name='order')
-router.register(r'slides', SlideViewSet, base_name='slide')
-router.register(r'segments', SegmentViewSet, base_name='segment')
+
 
 dashboard_router = routers.DefaultRouter()
 dashboard_router.register(r'products', product_viewset.ProductViewSet, base_name='products')
@@ -45,8 +43,6 @@ dashboard_router.register(r'orders', order_viewset.OrderViewSet, base_name='cate
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('download_categories/', download_categories),
-    path('download_products/', download_products),
     path('api/initial_data/', initial_data, name='initial_data'),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

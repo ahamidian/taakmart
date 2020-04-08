@@ -1,7 +1,11 @@
 import requests
 import json
-
+import bs4
 from main.models import Category, Product, Brand, Type
+
+
+def get_all_categories():
+    get_categories("food-beverage")
 
 
 def get_categories(category_path, parent=None):
@@ -83,29 +87,45 @@ def get_kinds_of_category(category):
     if json_data["Data"]["ProductTypes"]:
         for kind in json_data["Data"]["ProductTypes"]["Attributes"]:
             if Type.objects.filter(search_value=kind["SearchValue"].replace("Type-", "")).__len__() == 0:
-                kinds.append(Type.objects.create(title=kind["Title"], search_value=kind["SearchValue"].replace("Type-", ""),
-                                                 category=category))
+                kinds.append(
+                    Type.objects.create(title=kind["Title"], search_value=kind["SearchValue"].replace("Type-", ""),
+                                        category=category))
             else:
                 kinds.append(Type.objects.get(search_value=kind["SearchValue"].replace("Type-", "")))
     return kinds
 
 
-def get_all_products_of_category(category_id):
-    category = Category.objects.get(id=category_id)
-    save_product_list_in_db(get_products(category))
-    types = get_kinds_of_category(category)
-    for type in types:
-        print(type.title)
-        products = get_products(category, type.search_value)
-        for product in products:
-            if Product.objects.filter(id=product.id).__len__() > 0:
-                Product.objects.get(id=product.id).types.add(type)
-            else:
-                product.save()
-                product.types.add(type)
-
-
 def get_all_products():
     for category in Category.objects.filter(is_leaf=True):
         print(category.title)
-        get_all_products_of_category(category.id)
+        save_product_list_in_db(get_products(category))
+        types = get_kinds_of_category(category)
+        for type in types:
+            print(type.title)
+            products = get_products(category, type.search_value)
+            for product in products:
+                if Product.objects.filter(id=product.id).__len__() > 0:
+                    Product.objects.get(id=product.id).types.add(type)
+                else:
+                    product.save()
+                    product.types.add(type)
+
+
+def get_all_brands():
+    for brand in Brand.objects.all():
+        print(brand.title)
+        res = requests.get("https://www.digikala.com/brand/" + brand.title.replace(" ", "-"))
+        soup = bs4.BeautifulSoup(res.text, "lxml")
+        elems = soup.select('.c-brand-description__text')
+        if len(elems) > 0:
+            brand.description = elems[0].get_text()
+
+        elems = soup.select('.c-brand-profile__avatar')
+        if len(elems) > 0:
+            brand.image = elems[0].get("style").replace("background-image: url(", "").replace(
+                "?x-oss-process=image/resize,m_lfit,h_300,w_300/quality,q_80)", "")
+
+        elems = soup.select('.c-brand-profile__username')
+        if len(elems) > 0:
+            brand.fa_title = elems[0].get_text()
+        brand.save()

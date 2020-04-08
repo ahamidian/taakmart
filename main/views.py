@@ -1,7 +1,6 @@
-from django.contrib.auth.decorators import login_required
 from django.db.models import F
 from django.db.models import Sum, Count
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, NumberFilter, BaseInFilter
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -12,18 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from main.models import Category, Product, Slide, Brand, Type, HomepageSegment
 from main.serializers import CategorySerializer, ProductSerializer, SlideSerializer, \
-    TypeSerializer, BrandSerializer, SegmentSerializer
-from main.services import get_categories, get_all_products
-
-
-def download_categories(request):
-    get_categories("food-beverage")
-    return HttpResponse("ok")
-
-
-def download_products(request):
-    get_all_products()
-    return HttpResponse("ok")
+    TypeSerializer, BrandSerializer, SegmentSerializer, BrandDetailSerializer
 
 
 def initial_data(request):
@@ -41,28 +29,6 @@ def initial_data(request):
         "slides": slides,
         "segments": segments,
     })
-
-
-class CategoryViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
-    queryset = Category.objects.all()
-    permission_classes = [AllowAny]
-    serializer_class = CategorySerializer
-
-    @action(detail=False, methods=['get'])
-    def main(self, request):
-        queryset = self.filter_queryset(self.get_queryset().filter(level=1))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     products = Product.objects.filter(category=instance)
-    #     serializer = ProductSerializer(products, many=True)
-    #     return Response(serializer.data)
 
 
 class ProductOrdering(OrderingFilter):
@@ -125,23 +91,19 @@ class ProductViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
         types_queryset = Type.objects.filter(pk__in=types_pk_list)
 
         filters = []
-        if brands_queryset.count() > 0:
+        if brands_queryset.count() > 1:
             filters.append(
                 {"type": "brand", "title": "برند", "items": BrandSerializer(brands_queryset, many=True).data})
-        if brands_queryset.count() > 0:
+        if brands_queryset.count() > 1:
             filters.append(
                 {"type": "type", "title": "نوع", "items": TypeSerializer(types_queryset, many=True).data})
 
         return Response({"filters": filters})
 
 
-class SlideViewSet(GenericViewSet, ListModelMixin):
-    queryset = Slide.objects.filter(is_active=True)
+class BrandViewSet(GenericViewSet, ListModelMixin):
+    queryset = Brand.objects.all().annotate(product_count=Count('product')).order_by("-product_count")
     permission_classes = [AllowAny]
-    serializer_class = SlideSerializer
-
-
-class SegmentViewSet(GenericViewSet, ListModelMixin):
-    queryset = HomepageSegment.objects.filter(is_active=True).order_by("order")
-    permission_classes = [AllowAny]
-    serializer_class = SegmentSerializer
+    serializer_class = BrandDetailSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['title', 'fa_title']
